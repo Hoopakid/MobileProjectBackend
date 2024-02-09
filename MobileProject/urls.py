@@ -19,6 +19,9 @@ from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django.conf.urls.static import static
+
+from MobileProject import settings
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -42,3 +45,5 @@ urlpatterns = [
     path('main/', include('main.urls')),
     path('auth/', include('accounts.urls'))
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
