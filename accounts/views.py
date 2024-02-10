@@ -9,10 +9,14 @@ from accounts.serializers import UserSerializer, UserRegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
+from django.contrib.auth.hashers import make_password
 
 class RegisterAPIView(GenericAPIView):
-    serializer_class =UserRegisterSerializer
+    serializer_class = UserRegisterSerializer
+
     def post(self, request):
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
         email = request.data.get('email')
         username = request.data.get('username')
         password1 = request.data.get('password1')
@@ -27,10 +31,14 @@ class RegisterAPIView(GenericAPIView):
         if User.objects.filter(email=email).exists():
             return Response({'success': False, 'error': 'Email already used!'}, status=400)
 
+        hashed_password = make_password(password1)
+
         user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
             email=email,
             username=username,
-            password=password1
+            password=hashed_password
         )
         user_serializer = UserSerializer(user)
         return Response({'success': True, 'data': user_serializer.data})
