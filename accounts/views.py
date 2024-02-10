@@ -2,13 +2,12 @@ from django.shortcuts import render
 from django.contrib.auth.views import get_user_model
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-# from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from accounts.serializers import UserSerializer, UserRegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-User = get_user_model()
 
+User = get_user_model()
 
 class RegisterAPIView(GenericAPIView):
     serializer_class =UserRegisterSerializer
@@ -51,3 +50,4 @@ class UserInfoAPIView(APIView):
         user = request.user
         user_serializer = UserSerializer(user)
         return Response({'success': True, 'data': user_serializer.data})
+      
