@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView, RetrieveUpdateDestroyAPIView, \
-    RetrieveDestroyAPIView
+    RetrieveDestroyAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -18,10 +18,18 @@ from .serializers import CreateProductSerializer, ProductListSerializer, Categor
     ProductAddColorSerializer
 
 
-class CreateProductAPIView(CreateAPIView):
-    queryset = Product.objects.all()
+class CreateProductAPIView(GenericAPIView):
     permission_classes = ()
     serializer_class = CreateProductSerializer
+
+    def post(self, request):
+        product_serializer = self.serializer_class(data=request.data)
+        if product_serializer.is_valid():
+            product_instance = product_serializer.save()
+            product = ProductListSerializer(product_instance)
+            return Response(product.data)
+        else:
+            return Response({'message': 'Product data invalid'})
 
 
 class ProductListAPIView(ListAPIView):
@@ -30,20 +38,60 @@ class ProductListAPIView(ListAPIView):
     serializer_class = ProductListSerializer
 
 
-class GetProductByIdAPIView(GenericAPIView):
-    permission_classes = ()
-    serializer_class = ProductListSerializer
-
-    def get(self, request, pk):
-        product = Product.objects.get(pk=pk)
-        product_serializer = ProductListSerializer(product)
-        return Response(product_serializer.data)
-
-
-class ProductUpdateAPIView(RetrieveDestroyAPIView):
-    queryset = Product.objects.all()
+class ProductUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = ()
     serializer_class = CreateProductSerializer
+    queryset = Product.objects.all()
+
+    def get(self, request, pk):
+        try:
+            product_instance = self.get_object()
+            if product_instance:
+                serializer = ProductListSerializer(product_instance)
+                return Response(serializer.data)
+            else:
+                return Response({'message': 'Product not found!'}, status=404)
+        except Exception as e:
+            return Response({'message': str(e)}, status=400)
+
+    def put(self, request, pk):
+        try:
+            product_instance = self.get_object()
+            if product_instance:
+                serializer = self.serializer_class(instance=product_instance, data=request.data)
+                if serializer.is_valid():
+                    updated_product = serializer.save()
+                    product_serializer = ProductListSerializer(updated_product)
+                    return Response(product_serializer.data)
+                else:
+                    return Response({'message': 'Product input invalid !'}, status=400)
+            else:
+                return Response({'message': 'Product not found!'}, status=404)
+        except Exception as e:
+            return Response({'message': str(e)}, status=400)
+
+    def patch(self, request, pk):
+        try:
+            product_instance = self.get_object()  # Retrieve the product instance
+            if product_instance:
+                product_instance.name = request.POST.get('name', product_instance.name)
+                product_instance.description = request.POST.get('description', product_instance.description)
+                product_instance.price = request.POST.get('price', product_instance.price)
+                product_instance.category = request.POST.get('category', product_instance.category)
+                product_instance.save()
+
+                # Pass the instance and data to the serializer
+                product_serializer = self.serializer_class(instance=product_instance, data=request.data)
+                if product_serializer.is_valid():
+                    product = product_serializer.save()
+                    product_serializer = ProductListSerializer(product)
+                    return Response(product_serializer.data)
+                else:
+                    return Response(product_serializer.errors, status=400)
+            else:
+                return Response({'message': 'Product not found!'}, status=404)
+        except Exception as e:
+            return Response({'message': str(e)}, status=400)
 
 
 class CreateCategoryAPIView(CreateAPIView):

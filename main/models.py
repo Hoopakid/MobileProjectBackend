@@ -50,7 +50,6 @@ class Category(models.Model):
 
 class Size(models.Model):
     name = models.CharField(max_length=10)
-    category = models.ForeignKey('main.Category', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name

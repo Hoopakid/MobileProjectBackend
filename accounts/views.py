@@ -58,3 +58,6 @@ class UserInfoAPIView(GenericAPIView):
         user = request.user
         user_serializer = UserSerializer(user)
         return Response({'success': True, 'data': user_serializer.data})
+
+
+from django.shortcuts import render

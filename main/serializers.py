@@ -21,9 +21,10 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ('name', 'description', 'price', 'category')
 
 
 class ProductListSerializer(serializers.ModelSerializer):
