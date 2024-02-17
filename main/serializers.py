@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, Size, Category, File, Color, ProductColors, ProductSizes
+
+from .models import Product, Size, Category, File, Color, ProductSizeColor
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -8,7 +9,22 @@ class SizeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FileUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ('file',)
+
+
+class AddCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ('name', 'img')
+
+
 class CategorySerializer(serializers.ModelSerializer):
+    img = FileUploadSerializer()
+
     class Meta:
         model = Category
         fields = '__all__'
@@ -35,35 +51,37 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FileUploadSerializer(serializers.ModelSerializer):
+class GetProductSizeColorSerializer(serializers.ModelSerializer):
+    size = SizeSerializer()
+    color = ColorSerializer()
+    product = ProductListSerializer()
+
     class Meta:
-        model = File
-        fields = ('file', 'hash')
+        model = ProductSizeColor
+        fields = '__all__'
 
 
-class ProductSizesSerializer(serializers.ModelSerializer):
+class GetProductSizeSerializer(serializers.ModelSerializer):
     size = SizeSerializer()
 
     class Meta:
-        model = ProductSizes
+        model = ProductSizeColor
         fields = ('size',)
 
 
-class ProductColorsSerializer(serializers.ModelSerializer):
+class GetSizeColorSerializer(serializers.ModelSerializer):
     color = ColorSerializer()
 
     class Meta:
-        model = ProductColors
+        model = ProductSizeColor
         fields = ('color',)
 
 
-class ProductAddSizesSerializer(serializers.ModelSerializer):
+class ProductAddSizeColorSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = ProductSizes
+        model = ProductSizeColor
         fields = '__all__'
 
 
-class ProductAddColorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductColors
-        fields = '__all__'
+

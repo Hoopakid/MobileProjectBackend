@@ -1,28 +1,23 @@
 from django.urls import path
 
-from main.views import CreateProductAPIView, ProductListAPIView, ProductUpdateAPIView, \
-    CreateCategoryAPIView, CategoryListAPIView, CategoryGetUpdateDeleteAPIView, CreateColorAPIView, ColorListAPIView, \
-    ColorGetUpdateDeleteAPIView, CreateSizeAPIView, SizeListAPIView, SizeGetUpdateDeleteAPIView, \
-    GetCategoryByIdAPIView, GetColorByIdAPIView, GetSizeByCategoryIdAPIView, FileUploadAPIView, ProductFileGetDelete, \
-    GetProductSizes
+from main.views import *
 
 urlpatterns = [
     path('add-product', CreateProductAPIView.as_view(), name='add-product'),
     path('add-category', CreateCategoryAPIView.as_view(), name='add-category'),
     path('add-color', CreateColorAPIView.as_view(), name='add-color'),
     path('add-size', CreateSizeAPIView.as_view(), name='add-size'),
-    path('product-update-delete/<int:pk>', ProductUpdateAPIView.as_view(), name='product-update'),
-    path('category-get-update-delete/<int:pk>', CategoryGetUpdateDeleteAPIView.as_view(), name='category-update'),
-    path('color-get-update-delete/<int:pk>', ColorGetUpdateDeleteAPIView.as_view(), name='color-update'),
-    path('size-update-delete/<int:pk>', SizeGetUpdateDeleteAPIView.as_view(), name='size-update'),
-    path('get-update-delete-product-size/<int:pk>', GetProductSizes.as_view(), name='get-update-delete-product-size'),
-    path('get-products', ProductListAPIView.as_view(), name='get-products'),
+    path('product-get-update-delete/<int:pk>', ProductUpdateAPIView.as_view(), name='product-get'),
+    path('category-get/<int:pk>', CategoryGetAPIView.as_view(), name='category-get'),
+    path('color-get/<int:pk>', ColorGetAPIView.as_view(), name='color-get'),
+    path('size-get/<int:pk>', SizeGetAPIView.as_view(), name='size-get'),
+    path('get-product-sizes/<int:pk>', GetProductSizes.as_view(), name='get-product-sizes'),
+    path('get-product-color-by-size-id/', GetColorByProductSizeId.as_view(), name='get-product_color-by-size_id'),
+    path('add-product-size-color', AddProductSizeColor.as_view(), name='add-product-size-color'),
+    path('get-products-by-category_id/<int:category_id>', GetProductsByCategoryIdAPIView.as_view(), name='get-products'),
     path('get-product-files/<int:pk>', ProductFileGetDelete.as_view(), name='get-product-files'),
     path('get-categories', CategoryListAPIView.as_view(), name='get-categories'),
-    path('get-category-by-id/<int:pk>', GetCategoryByIdAPIView.as_view(), name='get-category-by-id'),
     path('get-colors', ColorListAPIView.as_view(), name='get-colors'),
-    path('get-color-by-id/<int:pk>', GetColorByIdAPIView.as_view(), name='get-color-by-id'),
     path('get-sizes', SizeListAPIView.as_view(), name='get-sizes'),
-    path('get-size-by-id/<int:pk>', GetSizeByCategoryIdAPIView.as_view(), name='get-size-by-category-id'),
     path('upload-file/', FileUploadAPIView.as_view(), name='upload-file'),
 ]
