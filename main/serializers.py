@@ -60,6 +60,11 @@ class GetProductSizeColorSerializer(serializers.ModelSerializer):
         model = ProductSizeColor
         fields = '__all__'
 
+        model = File
+        fields = ('file', 'product')
+
+    def create(self, validated_data):
+        return File.objects.create(**validated_data)
 
 class GetProductSizeSerializer(serializers.ModelSerializer):
     size = SizeSerializer()
