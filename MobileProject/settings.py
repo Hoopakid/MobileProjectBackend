@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'main',
     'accounts',
     'chat',
+    'customer',
 
     # third-party
     'rest_framework_simplejwt',
