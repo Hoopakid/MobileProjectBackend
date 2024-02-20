@@ -11,5 +11,4 @@ urlpatterns = [
     path('register', RegisterAPIView.as_view(), name='register'),
     path('logout', LogoutAPIView.as_view(), name='logout'),
     path('user-info', UserInfoAPIView.as_view(), name='user_info'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair')
 ]

@@ -37,7 +37,10 @@ class ProductListSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ('file', 'hash')
+        fields = ('file', 'product')
+
+    def create(self, validated_data):
+        return File.objects.create(**validated_data)
 
 
 class ProductSizesSerializer(serializers.ModelSerializer):

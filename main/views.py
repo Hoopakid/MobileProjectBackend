@@ -1,9 +1,12 @@
+import os
 import hashlib
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView, RetrieveUpdateDestroyAPIView, \
     RetrieveDestroyAPIView
 from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
@@ -133,8 +136,8 @@ class SizeGetUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = SizeSerializer
 
 
-class FileUploadAPIView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+class FileUploadAPIView(GenericAPIView):
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     serializer_class = FileUploadSerializer
 
     def post(self, request, *args, **kwargs):
@@ -153,7 +156,7 @@ class FileUploadAPIView(APIView):
 
 
 class ProductFileGetDelete(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     permission_classes = ()
     serializer_class = FileUploadSerializer
 
@@ -163,8 +166,17 @@ class ProductFileGetDelete(APIView):
         return Response(files_serializer.data)
 
     def delete(self, request, pk):
-        File.objects.get(pk=pk).delete()
-        return Response(status=204)
+        try:
+            file_instance = File.objects.get(pk=pk)
+        except File.DoesNotExist:
+            return Response({'message': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+        file_path = file_instance.file.path
+        if os.path.exists(str(file_path)):
+            os.remove(str(file_path))
+
+        file_instance.delete()
+
+        return Response({"message": "File deleted successfully", "status": status.HTTP_204_NO_CONTENT})
 
 
 class GetProductSizes(APIView):
@@ -175,4 +187,3 @@ class GetProductSizes(APIView):
         sizes = ProductSizes.objects.filter(product_id=pk)
         sizes_serializer = ProductSizesSerializer(sizes, many=True)
         return Response(sizes_serializer.data)
-
