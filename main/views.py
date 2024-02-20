@@ -1,4 +1,6 @@
+product
 import datetime
+import os
 import hashlib
 from pprint import pprint
 
@@ -10,6 +12,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView, RetrieveUpdateDestroyAPIView, \
     RetrieveDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, DestroyAPIView
 from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
@@ -165,9 +168,8 @@ class SizeGetAPIView(RetrieveAPIView):
     serializer_class = SizeSerializer
 
 
-class FileUploadAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-    parser_classes = (MultiPartParser, FormParser)
+class FileUploadAPIView(GenericAPIView):
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     serializer_class = FileUploadSerializer
 
     def post(self, request, *args, **kwargs):
@@ -185,9 +187,10 @@ class FileUploadAPIView(APIView):
         )
 
 
-class ProductFileGetDeleteAPIView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-    permission_classes = (IsAuthenticated,)
+
+class ProductFileGetDelete(APIView):
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
+    permission_classes = ()
     serializer_class = FileUploadSerializer
 
     def get(self, request, pk):
@@ -196,8 +199,17 @@ class ProductFileGetDeleteAPIView(APIView):
         return Response(files_serializer.data)
 
     def delete(self, request, pk):
-        File.objects.get(pk=pk).delete()
-        return Response(status=204)
+        try:
+            file_instance = File.objects.get(pk=pk)
+        except File.DoesNotExist:
+            return Response({'message': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+        file_path = file_instance.file.path
+        if os.path.exists(str(file_path)):
+            os.remove(str(file_path))
+
+        file_instance.delete()
+
+        return Response({"message": "File deleted successfully", "status": status.HTTP_204_NO_CONTENT})
 
 
 class GetProductSizesAPIView(GenericAPIView):
@@ -458,7 +470,3 @@ class PromoCodeAPIView(GenericAPIView):
         promo_code.save()
         data_serializer = self.serializer_class(promo_code)
         return Response(data_serializer.data)
-
-
-
-
