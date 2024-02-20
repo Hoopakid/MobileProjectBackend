@@ -1,11 +1,52 @@
-from django.shortcuts import render
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from customer.models import DiscountProduct, ShippingAddress, Country, State, City
-from customer.serializers import DiscountProductSerializer, ShippingAddressSerializer
+from customer.models import DiscountProduct, ShippingAddress, Country, State, City, Favorite
+from customer.serializers import DiscountProductSerializer, ShippingAddressSerializer, FavouriteSerializer
 from main.models import Product
+from main.serializers import ProductListSerializer
+
+
+class MyFavouriteAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = FavouriteSerializer
+
+    def post(self, request):
+        user = request.user.id
+        product_ids = request.data.get('product_ids', [])
+
+        remove_favourites = []
+        saved_favourites = []
+
+        if not user:
+            return Response({'success': False, "error": "user_id is required"})
+
+        for product_id in product_ids:
+            try:
+                favorite = Favorite.objects.get(user_id=user, product_id=product_id)
+                favorite.delete()
+                product_data = Product.objects.get(pk=product_id)
+                serializer = ProductListSerializer(product_data)
+                remove_favourites.append(serializer.data)
+            except Favorite.DoesNotExist:
+                user_product = Favorite.objects.create(user_id=user, product_id=product_id)
+                product_data = Product.objects.get(pk=product_id)
+                user_product.save()
+                serializer = ProductListSerializer(product_data)
+                saved_favourites.append(serializer.data)
+        return Response({
+            'removed_favourites': remove_favourites,
+            'saved_favourites': saved_favourites})
+
+    def get(self, request):
+        user_id = request.user.id
+        favorites = Favorite.objects.filter(user_id=user_id)
+        product_ids = [favorite.product_id for favorite in favorites]
+        products = Product.objects.filter(pk__in=product_ids)
+        serializer = ProductListSerializer(products, many=True)
+        return Response(serializer.data)
 
 
 class ShippignAddressAPIView(GenericAPIView):
