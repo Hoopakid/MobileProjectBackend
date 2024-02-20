@@ -6,8 +6,7 @@ from django.db import models
 from django.utils.text import slugify
 from os.path import splitext
 
-from mptt.fields import TreeForeignKey
-from mptt.models import MPTTModel
+from mptt.models import MPTTModel, TreeForeignKey
 
 
 def slugify_upload(instance, filename):
@@ -30,18 +29,16 @@ class Product(models.Model):
         return self.name
 
 
-class ProductSizes(models.Model):
-    product = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
+class ProductSizeColor(models.Model):
     size = models.ForeignKey('main.Size', on_delete=models.CASCADE, blank=True, null=True)
-
-
-class ProductColors(models.Model):
-    product = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
     color = models.ForeignKey('main.Color', on_delete=models.CASCADE, blank=True, null=True)
+    product = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    img = models.ForeignKey('main.File', on_delete=models.CASCADE, blank=True, null=True)
+    count_product = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -53,7 +50,6 @@ class Category(models.Model):
 
 class Size(models.Model):
     name = models.CharField(max_length=10)
-    category = models.ForeignKey('main.Category', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name
