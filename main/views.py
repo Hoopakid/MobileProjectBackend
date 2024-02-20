@@ -19,6 +19,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework import viewsets
+
+from accounts.permissions import AdminPermission
 from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode
 from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
     SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
@@ -26,8 +28,8 @@ from .serializers import CreateProductSerializer, ProductListSerializer, Categor
     AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer
 
 
-class CreateProductAPIView(GenericAPIView):
-    permission_classes = ()
+class CreateProductAPIView(CreateAPIView):
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = CreateProductSerializer
 
     def post(self, request):
@@ -54,7 +56,7 @@ class GetProductsByCategoryIdAPIView(GenericAPIView):
 
 
 class ProductUpdateAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = CreateProductSerializer
     queryset = Product.objects.all()
 
@@ -111,7 +113,7 @@ class ProductUpdateAPIView(RetrieveUpdateDestroyAPIView):
 
 class CreateCategoryAPIView(CreateAPIView):
     queryset = Category.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = AddCategorySerializer
 
 
@@ -129,7 +131,7 @@ class CategoryListAPIView(ListAPIView):
 
 class CreateColorAPIView(CreateAPIView):
     queryset = Color.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = ColorSerializer
 
 
@@ -147,7 +149,7 @@ class ColorGetAPIView(RetrieveAPIView):
 
 class CreateSizeAPIView(CreateAPIView):
     queryset = Size.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = SizeSerializer
 
 
@@ -164,6 +166,7 @@ class SizeGetAPIView(RetrieveAPIView):
 
 
 class FileUploadAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
     parser_classes = (MultiPartParser, FormParser)
     serializer_class = FileUploadSerializer
 
@@ -184,7 +187,7 @@ class FileUploadAPIView(APIView):
 
 class ProductFileGetDeleteAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
     serializer_class = FileUploadSerializer
 
     def get(self, request, pk):
@@ -229,7 +232,7 @@ class GetColorByProductSizeIdAPIView(APIView):
 
 
 class AddProductSizeColorAPIView(GenericAPIView):
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = ProductAddSizeColorSerializer
 
     def post(self, request):
@@ -455,26 +458,6 @@ class PromoCodeAPIView(GenericAPIView):
         promo_code.save()
         data_serializer = self.serializer_class(promo_code)
         return Response(data_serializer.data)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
