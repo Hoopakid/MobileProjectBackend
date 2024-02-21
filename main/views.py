@@ -1,31 +1,38 @@
+product
+import datetime
 import os
 import hashlib
+from pprint import pprint
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView, RetrieveUpdateDestroyAPIView, \
-    RetrieveDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView
+    RetrieveDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, DestroyAPIView
 from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
+from rest_framework import viewsets
 
-from .models import Product, Color, Category, Size, File, ProductSizeColor
+from accounts.permissions import AdminPermission
+from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode
 from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
     SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
-    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer
 
 
-class CreateProductAPIView(GenericAPIView):
-    permission_classes = ()
+class CreateProductAPIView(CreateAPIView):
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = CreateProductSerializer
 
     def post(self, request):
@@ -52,7 +59,7 @@ class GetProductsByCategoryIdAPIView(GenericAPIView):
 
 
 class ProductUpdateAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = CreateProductSerializer
     queryset = Product.objects.all()
 
@@ -109,7 +116,7 @@ class ProductUpdateAPIView(RetrieveUpdateDestroyAPIView):
 
 class CreateCategoryAPIView(CreateAPIView):
     queryset = Category.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = AddCategorySerializer
 
 
@@ -127,7 +134,7 @@ class CategoryListAPIView(ListAPIView):
 
 class CreateColorAPIView(CreateAPIView):
     queryset = Color.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = ColorSerializer
 
 
@@ -145,7 +152,7 @@ class ColorGetAPIView(RetrieveAPIView):
 
 class CreateSizeAPIView(CreateAPIView):
     queryset = Size.objects.all()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated, AdminPermission)
     serializer_class = SizeSerializer
 
 
@@ -180,6 +187,7 @@ class FileUploadAPIView(GenericAPIView):
         )
 
 
+
 class ProductFileGetDelete(APIView):
     parser_classes = (MultiPartParser, FormParser, FileUploadParser)
     permission_classes = ()
@@ -204,7 +212,7 @@ class ProductFileGetDelete(APIView):
         return Response({"message": "File deleted successfully", "status": status.HTTP_204_NO_CONTENT})
 
 
-class GetProductSizes(GenericAPIView):
+class GetProductSizesAPIView(GenericAPIView):
     permission_classes = ()
     serializer_class = ProductAddSizeColorSerializer
 
@@ -217,7 +225,7 @@ class GetProductSizes(GenericAPIView):
             return Response({'detail': f'{e}'}, status=401)
 
 
-class GetColorByProductSizeId(APIView):
+class GetColorByProductSizeIdAPIView(APIView):
     permission_classes = ()
 
     def get(self, request):
@@ -235,8 +243,8 @@ class GetColorByProductSizeId(APIView):
             return Response(data=f'{e}', status=500)
 
 
-class AddProductSizeColor(GenericAPIView):
-    permission_classes = ()
+class AddProductSizeColorAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated, AdminPermission )
     serializer_class = ProductAddSizeColorSerializer
 
     def post(self, request):
@@ -257,7 +265,7 @@ class AddProductSizeColor(GenericAPIView):
             return Response({'detail': f'{e}'})
 
 
-class AllProductSizeColor(GenericAPIView):
+class AllProductSizeColorAPIView(GenericAPIView):
     permission_classes = ()
     serializer_class = GetProductSizeColorSerializer
 
@@ -275,6 +283,190 @@ def update_category_count(sender, instance, created, **kwargs):
             category.count_product = Product.objects.filter(category=category).count()
             category.save()
 
-        sizes = ProductSizes.objects.filter(product_id=pk)
-        sizes_serializer = ProductSizesSerializer(sizes, many=True)
-        return Response(sizes_serializer.data)
+
+class ProductListByOtherCategoryAPIView(APIView):
+    permission_classes = ()
+
+    def get(self, request):
+        try:
+            categories = Category.objects.all()
+            data = []
+            for category in categories:
+                product = Product.objects.filter(category_id=category.id).first()
+                if product:
+                    product_serializer = ProductListSerializer(product)
+                    data.append(product_serializer.data)
+            return Response(data=data)
+        except Exception as e:
+            return Response({'detail': str(e)})
+
+
+class GetTopProductsByCategoryAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = ProductListSerializer
+
+    def get(self, request, category_id):
+        try:
+            product = Product.objects.filter(category_id=category_id).order_by('-sold_quantity')
+            product_serializer = self.serializer_class(product, many=True)
+            return Response(product_serializer.data)
+        except Exception as e:
+            return Response({'error': f'{e}'})
+
+
+class GetNewArrivalsProductAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = ProductListSerializer
+
+    def get(self, request):
+        try:
+            three_days_ago = datetime.datetime.now() - datetime.timedelta(days=3)
+            data = Product.objects.filter(created_at__gte=three_days_ago)
+            data_serializer = self.serializer_class(data, many=True)
+            return Response(data_serializer.data)
+        except Exception as e:
+            return Response({'detail': str(e)})
+
+
+class GetPopularProductAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = ProductListSerializer
+
+    def get(self, request):
+        try:
+            data = Product.objects.filter(rate__gte=3).order_by('-rate')
+            product_serializer = self.serializer_class(data, many=True)
+            return Response(product_serializer.data)
+        except Exception as e:
+            return Response({'error': f'{e}'})
+
+
+class AddToShoppingCartAPIView(CreateAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AddToShoppingCartSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            product_id = serializer.validated_data.get('product_id')
+            user = request.user.id
+            if Shoping_cart.objects.filter(product_id=product_id, user_id=user).exists():
+                return Response({"message": "Product already exists in the shopping cart."},
+                                status=status.HTTP_400_BAD_REQUEST)
+            Shoping_cart.objects.create(product_id=product_id, user_id_id=user)
+            return Response({"message": "Product added to the shopping cart successfully."},
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ShoppingCartListUpdateDelete(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AddToShoppingCartSerializer
+
+
+    def get(self, request):
+        user_id = request.user.id
+        shopping_cart_detail = Shoping_cart.objects.filter(user_id=user_id)
+        print(shopping_cart_detail.values())
+        if shopping_cart_detail:
+            data = []
+            for item in shopping_cart_detail.values():
+                product = Product.objects.get(id=item.get('product_id_id'))
+                if product:
+                    product_serializer = ProductListSerializer(product)
+                    data.append(product_serializer.data)
+            return Response(data=data)
+        else:
+            return Response({"message": "Shopping cart is empty."}, status=404)
+
+
+class DeleteShoppingCartAPIView(DestroyAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = AddToShoppingCartSerializer
+
+    def delete(self, request, product_id):
+        user_id = request.user.id
+        if product_id:
+            if Shoping_cart.objects.filter(product_id=product_id, user_id=user_id).exists():
+                try:
+                    Shoping_cart.objects.get(Q(user_id_id=user_id) & Q(product_id=product_id)).delete()
+                    return Response(status=201)
+                except Exception as e:
+                    return Response({'message': 'Product not found', 'error': f'{e}'}, status=404)
+            else:
+                return Response({'message': 'Product in Shopping cart not found !'})
+        else:
+            return Response({'message': 'product_id invalid !'})
+
+
+class SearchCategoryAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = CategorySerializer
+
+    def get(self, request):
+        query = request.query_params.get('query')
+        if not query:
+            return Response({'message': 'Query not provided'}, status=400)
+
+        categories = Category.objects.filter(name__icontains=query)
+        if categories.exists():
+            serializer = self.serializer_class(categories, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({'message': 'No categories found for the query'}, status=404)
+
+
+class FilterProductsAPIView(GenericAPIView):
+    serializer_class = ProductListSerializer
+
+    @swagger_auto_schema(query_serializer=FilterQuerySerializer)
+    def get(self, request):
+        category_id = request.GET.get('category_id')
+        start_price = request.GET.get('start_price')
+        end_price = request.GET.get('end_price')
+        sort = request.GET.get('sort')
+        rate = request.GET.get('rate')
+
+        query = Product.objects.all()
+
+        try:
+            if category_id:
+                query = query.filter(category_id=category_id)
+            if start_price and end_price:
+                query = query.filter(price__gte=start_price, price__lte=end_price)
+            if sort:
+                if sort == 'New_Today':
+                    query = query.filter(created_at__day=datetime.datetime.now() - datetime.timedelta(days=1))
+                elif sort == 'New_This_Week':
+                    query = query.filter(created_at__day=datetime.datetime.now() - datetime.timedelta(days=7))
+                elif sort == 'Top_sellers':
+                    query = query.filter(sold_quantity__gte=2).order_by('-sold_quantity')
+            if rate:
+                query = query.filter(rate__gte=rate)
+            query_serializer = self.serializer_class(query, many=True)
+            return Response(query_serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)})
+
+
+class PromoCodeAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = PromoCodeSerializer
+
+    @swagger_auto_schema(query_serializer=QuerySerializer)
+    def get(self, request):
+        query = request.query_params.get('query')
+        try:
+            promo_code = PromoCode.objects.get(code=query)
+        except PromoCode.DoesNotExist:
+            return Response({'message': 'PromoCode not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if promo_code.start_date > timezone.now():
+            return Response({'message': 'PromoCode is not active yet'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if promo_code.end_date < timezone.now():
+            return Response({'message': 'PromoCode expired'}, status=status.HTTP_400_BAD_REQUEST)
+        promo_code.current_usage += 1
+        promo_code.save()
+        data_serializer = self.serializer_class(promo_code)
+        return Response(data_serializer.data)

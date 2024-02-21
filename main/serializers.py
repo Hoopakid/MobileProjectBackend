@@ -1,6 +1,7 @@
+from django.core.validators import MaxValueValidator
 from rest_framework import serializers
 
-from .models import Product, Size, Category, File, Color, ProductSizeColor
+from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -40,7 +41,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('name', 'description', 'price', 'category')
+        fields = ('name', 'description', 'price', 'category', 'quantity')
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -89,4 +90,31 @@ class ProductAddSizeColorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AddToShoppingCartSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = Shoping_cart
+        fields = ('product_id', )
+
+
+sort_by_choices = (
+        ('New_Today', 'New_This_Week', 'Top_sellers')
+    )
+
+
+class FilterQuerySerializer(serializers.Serializer):
+    category_id = serializers.CharField(required=False)
+    start_price = serializers.IntegerField(required=False)
+    end_price = serializers.IntegerField(required=False)
+    sort_by = serializers.ChoiceField(choices=sort_by_choices)
+    rate = serializers.IntegerField(validators=[MaxValueValidator(5)])
+
+
+class PromoCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PromoCode
+        fields = ('discount', )
+
+
+class QuerySerializer(serializers.Serializer):
+    query = serializers.CharField(max_length=255)
