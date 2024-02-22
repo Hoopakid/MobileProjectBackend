@@ -67,6 +67,21 @@ class Color(models.Model):
         return self.name
 
 
+class CategoryFile(models.Model):
+    category_file = models.FileField(upload_to=slugify_upload, blank=True, null=True)
+    category_hash = models.CharField(max_length=150, blank=True, null=True)
+    category = models.ForeignKey('main.Category', on_delete=models.CASCADE, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        input = self.category_file.name
+        result = hashlib.sha256(input.encode())
+        self.hash = result.hexdigest()
+        super(CategoryFile, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.category_file.name
+
+
 class File(models.Model):
     file = models.FileField(upload_to=slugify_upload, blank=True, null=True)
     hash = models.CharField(max_length=150, blank=True, null=True, unique=True)
@@ -84,6 +99,7 @@ class File(models.Model):
 
 class Shoping_cart(models.Model):
     product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE)
+    count_product = models.IntegerField(default=1)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=datetime.datetime.now)
 

@@ -31,3 +31,4 @@ urlpatterns = [
     path('filter', FilterProductsAPIView.as_view(), name='filter'),
     path('promocode', PromoCodeAPIView.as_view(), name='promo_code'),
 ]
+

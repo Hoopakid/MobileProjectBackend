@@ -89,7 +89,7 @@ class AddToShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shoping_cart
-        fields = ('product_id', )
+        fields = ('product_id', 'count_product')
 
 
 sort_by_choices = (
