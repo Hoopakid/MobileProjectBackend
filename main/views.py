@@ -1,4 +1,3 @@
-product
 import datetime
 import os
 import hashlib
@@ -215,6 +214,7 @@ class ProductFileGetDelete(APIView):
 class GetProductSizesAPIView(GenericAPIView):
     permission_classes = ()
     serializer_class = ProductAddSizeColorSerializer
+    queryset = ProductSizeColor.objects.all()
 
     def get(self, request, pk):
         try:
