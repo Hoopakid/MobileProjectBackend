@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.views import get_user_model
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -41,18 +42,20 @@ class RegisterAPIView(GenericAPIView):
         return Response({'success': True, 'data': user_serializer.data})
 
 
-class LogoutAPIView(GenericAPIView):
+class LogoutAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         refresh_token = request.data.get('refresh')
         token = RefreshToken(refresh_token)
         token.blacklist()
-        return Response(status=204)
+
+        return Response({"succes": "Loged out"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class UserInfoAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
 
     def get(self, request):
         user = request.user
