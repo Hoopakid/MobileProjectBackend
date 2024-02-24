@@ -25,7 +25,7 @@ urlpatterns = [
     path('facebook-login', RedirectToFacebookApiView.as_view(), name='facebook-login'),
     path('facebook/callback', callback_facebook, name='facebook_callback'),
 
-    path('reset-password', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('reset-password', PasswordResetRequestView.as_view(), name='password_reset_request')
     # path('reset-password-confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(),
     #      name='reset_password_confirm')
 ]

@@ -1,6 +1,5 @@
 import os
 import requests # noqa
-# from django.utils.http import urlsafe_base64_encode
 from dotenv import load_dotenv
 from django.shortcuts import redirect
 from rest_framework.views import APIView
@@ -22,6 +21,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from main.tasks import send_email_reset
+
 
 User = get_user_model()
 load_dotenv()
@@ -90,20 +90,14 @@ class PasswordResetRequestView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         user = User.objects.filter(email=email).first()
-
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-
-
             send_email_reset.delay(
                 email,
                 uid,
                 token,
-
-
             )
-
             return Response({'detail': 'Password reset link sent to your email.'}, status=202)
         else:
             return Response({'detail': 'Email not found.'}, status=404)
@@ -115,8 +109,8 @@ class PasswordResetConfirmView(GenericAPIView):
 
     def post(self, request, uidb64, token, *args, **kwargs):
         try:
-            uidb64 = urlsafe_base64_decode(uidb64).decode()
-            user = User.objects.get(pk=uidb64)
+            uidb64= urlsafe_base64_decode(uidb64).decode()
+            user= User.objects.get(pk=uidb64)
 
             if default_token_generator.check_token(user, token):
                 new_password = request.data.get('new_password', '')

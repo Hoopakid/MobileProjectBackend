@@ -22,3 +22,5 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(max_length=20)
+
+
