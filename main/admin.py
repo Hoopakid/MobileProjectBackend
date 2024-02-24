@@ -1,3 +1,4 @@
 from django.contrib import admin
+from .models import Product, Color, Size, File, Category, ProductSizeColor, Shoping_cart, PromoCode, CategoryFile
 
-# Register your models here.
+admin.site.register((Product, Color, Size, File, Category, ProductSizeColor, Shoping_cart, PromoCode, CategoryFile))

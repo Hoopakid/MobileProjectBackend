@@ -7,7 +7,8 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = ('id', 'first_name', 'last_name', 'email', 'username', 'date_joined')
+
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -18,9 +19,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'email', 'username', 'password1', 'password2')
 
-
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(max_length=20)
 
-
+    

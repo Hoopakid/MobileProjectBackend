@@ -2,6 +2,11 @@ import os
 import requests # noqa
 from dotenv import load_dotenv
 from django.shortcuts import redirect
+from django.shortcuts import render
+from django.contrib.auth.views import get_user_model
+from rest_framework import status
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, status # noqa
 from rest_framework.response import Response
@@ -38,6 +43,9 @@ class RegisterAPIView(GenericAPIView):
         password1 = request.data.get('password1')
         password2 = request.data.get('password2')
 
+        if User.objects.filter(email=email).exists():
+            return Response({'success': False, 'error': 'Email already used!'}, status=400)
+
         if password1 != password2:
             return Response({'success': False, 'error': 'Passwords do not match!'}, status=400)
 
@@ -67,14 +75,16 @@ class LogoutAPIView(APIView):
         refresh_token = request.data.get('refresh')
         token = RefreshToken(refresh_token)
         token.blacklist()
-        return Response(status=204)
+
+        return Response({"succes": "Loged out"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
 
 # User Info
-class UserInfoAPIView(APIView):
+class UserInfoAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
 
     def get(self, request):
         user = request.user
@@ -199,31 +209,4 @@ def callback_facebook(request):
 # https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://63b4-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=796972424476-4pakur4pb1c0d578vgso2u72j3burqbh.apps.googleusercontent.com&scope=openid email profile&access_type=offline # noqa
 # ngrok http http://localhost:8000
 # https://www.facebook.com/v9.0/dialog/oauth?client_id=710566401221328&redirect_uri=https://45a7-178-218-201-17.ngrok-free.app/accounts/facebook/callback&scope=email,public_profile
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
