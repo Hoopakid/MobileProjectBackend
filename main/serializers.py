@@ -1,7 +1,8 @@
 from django.core.validators import MaxValueValidator
 from rest_framework import serializers
 
-from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode
+from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, LikeModel
+from .models import Product, Size, Category, File, Color, ProductSizeColor, ReviewModel
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -118,3 +119,23 @@ class PromoCodeSerializer(serializers.ModelSerializer):
 
 class QuerySerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model: ReviewModel
+        fields = ('comment', 'star', )
+
+class ReviewSerializersRes(serializers.ModelSerializer):
+
+    class Meta:
+        model: ReviewModel
+        fields = '__all__'
+
+
+
+class LikeSerializersRes(serializers.ModelSerializer):
+
+    class Meta:
+        model: LikeModel
+        fields = '__all__'

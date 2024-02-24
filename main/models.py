@@ -130,4 +130,15 @@ class PromoCode(models.Model):
     def __str__(self):
         return self.code
 
+class ReviewModel(models.Model):
+    user_id = models.ForeignKey('auth.User',on_delete=models.CASCADE, blank=True, null=True)
+    product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
+    comment = models.TextField()
+    star = models.FloatField()
+    reviewed_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
+class LikeModel(models.Model):
+    user_id = models.ForeignKey('auth.User',on_delete=models.CASCADE, blank=True, null=True)
+    product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
+    like = models.IntegerField()
+    reviewed_at = models.DateTimeField(default=datetime.datetime.utcnow)
