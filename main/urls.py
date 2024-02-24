@@ -20,4 +20,5 @@ urlpatterns = [
     path('get-colors', ColorListAPIView.as_view(), name='get-colors'),
     path('get-sizes', SizeListAPIView.as_view(), name='get-sizes'),
     path('upload-file/', FileUploadAPIView.as_view(), name='upload-file'),
+    path('get-similar-products/', GetSimilarProductsAPIView.as_view(), name='similar-products')
 ]
