@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from rest_framework.generics import GenericAPIView, ListAPIView
+from django.shortcuts import render
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from customer.models import DiscountProduct, ShippingAddress, Country, State, City, Favorite
