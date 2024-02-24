@@ -5,13 +5,14 @@ from customer.views import (
     ShippignAddressAPIView,
     MyFavouriteAPIView,
     DiscountProductListAPIView,
-    DiscountCategoryListAPIView
+    DiscountCategoryListAPIView, DiscountCategoryAPIView
 )
 
 urlpatterns = [
     path('Favourites/', MyFavouriteAPIView.as_view(), name='favourites'),
     path('shipping_address/', ShippignAddressAPIView.as_view(), name='shipping-address'),
-    path('discount_product/<int:category_id>', DiscountProductAPIView.as_view(), name='discount-product'),
-    path('discount_product_list/', DiscountProductListAPIView.as_view(), name='discount-product-list'),
-    path('discount_category_list/', DiscountCategoryListAPIView.as_view(), name='discount-category-list')
+    path('discount_category/<int:category_id>', DiscountCategoryAPIView.as_view(), name='discount-product'),
+    path('discount_category_list/', DiscountCategoryListAPIView.as_view(), name='discount-product'),
+    path('discount_product/', DiscountProductAPIView.as_view(), name='discount-product-list'),
+    path('discount_product_list/', DiscountProductListAPIView.as_view(), name='discount-category-list')
 ]

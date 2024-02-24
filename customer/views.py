@@ -1,13 +1,27 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
 from django.db.models import Count
 from rest_framework.generics import GenericAPIView, ListAPIView
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from customer.models import DiscountProduct, ShippingAddress, Country, State, City, Favorite
-from customer.serializers import DiscountProductSerializer, ShippingAddressSerializer, FavouriteSerializer, \
-    DiscountCategorySerializer, DiscountProductListSerializer
+from customer.models import (
+    DiscountProduct, ShippingAddress,
+    Country, State, City,
+    Favorite, DiscountCategory
+)
+
+from customer.serializers import (
+    DiscountProductSerializer,
+    ShippingAddressSerializer,
+    FavouriteSerializer,
+    DiscountCategorySerializer,
+    DiscountProductListSerializer,
+    DiscountCategoryListserializer
+)
+
 from main.models import Product, Category
 from main.serializers import ProductListSerializer
 
@@ -54,7 +68,14 @@ class MyFavouriteAPIView(GenericAPIView):
 
     def get(self, request):
         user_id = request.user.id
+
+        if not user_id:
+            return Response({'success': False, "error": "user_id is required"})
+
         favorites = Favorite.objects.filter(user_id=user_id)
+
+        if not favorites:
+            return Response('My favourite empty !!!')
         product_ids = [favorite.product_id for favorite in favorites]
         products = Product.objects.filter(pk__in=product_ids)
         serializer = ProductListSerializer(products, many=True)
@@ -77,13 +98,6 @@ class ShippignAddressAPIView(GenericAPIView):
 
         if not user:
             return Response({'success': False, "error": "user_id is required"})
-
-        try:
-            exists_data = ShippingAddress.objects.get(user=user)
-            if exists_data:
-                exists_data.delete()
-        except ShippingAddress.DoesNotExist:
-            pass
 
         try:
             country = Country.objects.get(name=country_name)
@@ -190,44 +204,11 @@ class ShippignAddressAPIView(GenericAPIView):
             return Response({'success': False})
 
 
-class DiscountProductAPIView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = DiscountProductSerializer
+class DiscountCategoryAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)  # AdminPermission
+    serializer_class = DiscountCategorySerializer
 
     def post(self, request, category_id):
-        percentage = request.data.get('discount_percentage')
-        start_time = request.data.get('start_time')
-        end_time = request.data.get('end_time')
-
-        try:
-            category_instance = Category.objects.get(pk=category_id)
-        except Category.DoesNotExist:  # Changed Product.DoesNotExist to Category.DoesNotExist
-            return Response({"error": "Category does not exist"})
-
-        products = Product.objects.filter(category_id=category_id)
-
-        if not 0 <= float(percentage) <= 100:  # Corrected the condition
-            return Response({"error": "Discount percentage should be between 0 and 100"}, status=400)
-
-        datas = []
-
-        for product in products:
-            discounted_price = float(product.price) - (float(product.price) * (float(percentage) / 100))
-            discount_product_data = DiscountProduct.objects.create(
-                category=category_instance,
-                product=product,
-                discount_percentage=percentage,
-                discounted_price=discounted_price,
-                start_time=start_time,
-                end_time=end_time
-            )
-            datas.append(discount_product_data)
-
-        serializer = DiscountProductSerializer(datas, many=True)
-        return Response(serializer.data)
-
-
-    def patch(self, request, category_id):
         percentage = request.data.get('discount_percentage')
         start_time = request.data.get('start_time')
         end_time = request.data.get('end_time')
@@ -237,9 +218,138 @@ class DiscountProductAPIView(GenericAPIView):
         except Category.DoesNotExist:
             return Response({"error": "Category does not exist"})
 
-        discount_product_data = DiscountProduct.objects.filter(category=category_instance)
+        products = Product.objects.filter(category_id=category_id)
 
-        for title in discount_product_data:
+        if not 0 <= float(percentage) <= 100:
+            return Response({"error": "Discount percentage should be between 0 and 100"}, status=400)
+
+        DiscountCategory.objects.create(
+            category=category_instance,
+            discount_percentage=percentage,
+            start_time=start_time,
+            end_time=end_time,
+            img=category_instance.img,
+            count_product=category_instance.count_product
+        )
+
+        datas = []
+
+        for product in products:
+            discounted_price = float(product.price) - (float(product.price) * (float(percentage) / 100))
+            discount_product_data = DiscountProduct.objects.create(
+                product=product,
+                discount_percentage=percentage,
+                discounted_price=discounted_price,
+                start_time=start_time,
+                end_time=end_time,
+                rate=product.rate
+            )
+            datas.append(discount_product_data)
+
+        serializer = DiscountProductSerializer(datas, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, category_id):
+        percentage = request.data.get('discount_percentage')
+        start_time = request.data.get('start_time')
+        end_time = request.data.get('end_time')
+
+        try:
+            category_instance = get_object_or_404(Category, pk=category_id)
+        except Category.DoesNotExist:
+            return Response({"error": "Category does not exist"}, status=404)
+
+        if not category_instance.discountcategory_set.exists():
+            return Response('Discount category not found !!!', status=404)
+
+        products_with_discount = DiscountProduct.objects.filter(product__category=category_instance)
+
+        DiscountCategory.objects.filter(category=category_instance).update(
+            discount_percentage=percentage,
+            start_time=start_time,
+            end_time=end_time
+        )
+
+        for discount_product_data in products_with_discount:
+            if percentage:
+                discount_product_data.discount_percentage = percentage
+                discount_product_data.discounted_price = discount_product_data.product.price - (discount_product_data.product.price * (float(percentage) / 100))
+
+            if start_time:
+                discount_product_data.start_time = start_time
+            if end_time:
+                discount_product_data.end_time = end_time
+
+            discount_product_data.save()
+
+        return Response({'success': True})
+
+
+class DiscountCategoryListAPIView(GenericAPIView):
+    serializer_class = DiscountCategoryListserializer
+
+    def get(self, request):
+        discount_category_data = DiscountCategory.objects.filter(start_time__lte=now())
+        serializer = DiscountCategoryListserializer(discount_category_data, many=True)
+        return Response(serializer.data)
+
+
+class DiscountProductAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = DiscountProductSerializer
+
+    def post(self, request):
+        user = request.user.id
+        product_ids = request.data.get("product_ids", [])
+        percentage = request.data.get('discount_percentage')
+        start_time = request.data.get('start_time')
+        end_time = request.data.get('end_time')
+
+        if not user:
+            return Response({'success': False, "error": "user_id is required"}, status=400)
+
+        error_products = []
+
+        for product_id in product_ids:
+            try:
+                product = Product.objects.get(pk=product_id)
+            except Product.DoesNotExist:
+                error_products.append(product_id)
+                continue
+
+            discounted_price = product.price - (product.price * (float(percentage) / 100))
+
+            DiscountProduct.objects.create(
+                product=product,
+                discount_percentage=percentage,
+                discounted_price=discounted_price,
+                rate=product.rate,
+                sold_quantity=product.sold_quantity,
+                start_time=start_time,
+                end_time=end_time
+            )
+
+        if error_products:
+            return Response({'success': False, 'error': error_products}, status=404)
+        else:
+            return Response({'success': True}, status=201)
+
+    def patch(self, request):
+        product_ids = request.data.getlist('product_ids', [])
+        percentage = request.data.get('discount_percentage')
+        start_time = request.data.get('start_time')
+        end_time = request.data.get('end_time')
+
+        error_product = []
+        confirm_discount_product = []
+
+        for product_id in product_ids:
+            try:
+                title = DiscountProduct.objects.get(pk=product_id)
+            except Product.DoesNotExist:
+                error_product.append(product_id)
+                continue
+
             if percentage:
                 title.discount_percentage = percentage
                 title.discounted_price = float(title.product.price) - (
@@ -251,39 +361,21 @@ class DiscountProductAPIView(GenericAPIView):
                 title.end_time = end_time
 
             title.save()
-        serializer = DiscountProductSerializer(discount_product_data, many=True)
-        return Response(serializer.data)
-
-
-class DiscountCategoryListAPIView(ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = DiscountCategorySerializer
+            confirm_discount_product.append(title)
+        serializer = DiscountProductSerializer(confirm_discount_product, many=True)
+        return Response(serializer.data, {'success': False, 'error': error_product})
 
 
 class DiscountProductListAPIView(GenericAPIView):
     serializer_class = DiscountProductListSerializer
 
-    def get(self, request, category_id):
+    def get(self, request):
         current_time = now()
-        discount_category_data = DiscountProduct.objects.filter(
-            category=category_id,
-            start_time__gte=current_time
-        )
+        discount_products = DiscountProduct.objects.filter(start_time__gte=current_time)
 
-        if not discount_category_data:
-            return Response({'success': False, 'error': 'Category not found !!!'})
+        if not discount_products.exists():
+            return Response({'success': False, 'error': 'No discount products found.'}, status=404)
 
-        products_with_discount = []
-        for discount in discount_category_data:
-            product = Product.objects.get(pk=discount.product.id)
-            products_with_discount.append({
-                'id': product.id,
-                'name': product.name,
-                'description': product.description,
-                'discounted_price': discount.discounted_price,
-                'rate': product.rate,
-                'sold_quantity': product.sold_quantity
-            })
+        serializer = DiscountProductListSerializer(discount_products, many=True)
+        return Response({'success': True, 'data': serializer.data})
 
-        discount_serializer = DiscountProductListSerializer(products_with_discount, many=True)
-        return Response(discount_serializer.data)
