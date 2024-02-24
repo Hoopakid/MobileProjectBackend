@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from customer.models import Favorite, DiscountProduct
+from main.models import Product, Category
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
@@ -20,7 +21,21 @@ class ShippingAddressSerializer(serializers.Serializer):
     county = serializers.CharField()
 
 
+class DiscountCategorySerializer(serializers.Serializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'img', 'count_product']
+
+
 class DiscountProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountProduct
-        fields = ['product', 'discount_percentage', 'start_time', 'end_time']
+        fields = ['discount_percentage', 'start_time', 'end_time']
+
+
+class DiscountProductListSerializer(serializers.Serializer):
+    discounted_price = serializers.FloatField()
+
+    class Meta:
+        model = Product
+        fields = ('name', 'description', 'rate', 'sold_quantity')

@@ -44,7 +44,7 @@ class ShippingAddress(models.Model):
 
 
 class DiscountProduct(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    category = models.ForeignKey('main.Category', on_delete=models.CASCADE)
     discount_percentage = models.FloatField()
     discounted_price = models.FloatField(blank=True, null=True)
     start_time = models.DateTimeField()
