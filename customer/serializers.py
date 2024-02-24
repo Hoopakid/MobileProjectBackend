@@ -1,14 +1,9 @@
 from rest_framework import serializers
-from customer.models import Favorite, DiscountProduct, DiscountCategory
-from main.models import Product, Category
+from customer.models import DiscountProduct, DiscountCategory
 
 
-class FavouriteSerializer(serializers.ModelSerializer):
-    product_ids = serializers.ListField()
-
-    class Meta:
-        model = Favorite
-        fields = ['product_ids']
+class FavouriteSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
 
 
 class ShippingAddressSerializer(serializers.Serializer):
@@ -33,28 +28,8 @@ class DiscountCategoryListserializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class DiscountProductSerializer(serializers.ModelSerializer):
-    product_ids = serializers.ListField(child=serializers.IntegerField())
-
-    class Meta:
-        model = DiscountProduct
-        fields = ['product_ids', 'discount_percentage', 'start_time', 'end_time']
-
-    def update(self, instance, validated_data):
-        product_ids = validated_data.pop('product_ids', None)
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        if product_ids is not None:
-            instance.products.set(product_ids)
-
-        return instance
-
-
-class DiscountProductListSerializer(serializers.Serializer):
-
+class DiscountProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountProduct
         fields = '__all__'
+
