@@ -42,7 +42,6 @@ class ProductSizeColor(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    img = models.ForeignKey('main.File', on_delete=models.CASCADE, blank=True, null=True)
     count_product = models.IntegerField(default=0)
 
     def __str__(self):
@@ -69,8 +68,9 @@ class Color(models.Model):
 
 class CategoryFile(models.Model):
     category_file = models.FileField(upload_to=slugify_upload, blank=True, null=True)
-    category_hash = models.CharField(max_length=150, blank=True, null=True)
-    category = models.ForeignKey('main.Category', on_delete=models.CASCADE, blank=True, null=True)
+    category_hash = models.CharField(max_length=160, blank=True, null=True)
+    category_id = models.ForeignKey('main.Category', on_delete=models.CASCADE, blank=True, null=True)
+    uploaded_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
     def save(self, *args, **kwargs):
         input = self.category_file.name
@@ -129,6 +129,28 @@ class PromoCode(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ('processing', 'Processing'),
+        ('completed', 'Completed')
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    shipping_address = models.ForeignKey('customer.ShippingAddress', on_delete=models.CASCADE, blank=True, null=True)
+    product = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
+    count_product = models.IntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
+    created_at = models.DateTimeField(default=timezone.now)
+
+
+class UserWallet(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    cash = models.FloatField(default=10000)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+
+
 
 class ReviewModel(models.Model):
     user_id = models.ForeignKey('auth.User',on_delete=models.CASCADE, blank=True, null=True)

@@ -16,7 +16,7 @@ urlpatterns = [
     path('get-product-color-by-size-id/', GetColorByProductSizeIdAPIView.as_view(), name='get-product_color-by-size_id'),
     path('add-product-size-color', AddProductSizeColorAPIView.as_view(), name='add-product-size-color'),
     path('get-products-by-category_id/<int:category_id>', GetProductsByCategoryIdAPIView.as_view(), name='get-products'),
-    path('get-product-files/<int:pk>', ProductFileGetDeleteAPIView.as_view(), name='get-product-files'),
+    path('get-product-files/<str:hash_code>', ProductFileGetDelete.as_view(), name='get-product-files'),
     path('get-categories', CategoryListAPIView.as_view(), name='get-categories'),
     path('get-colors', ColorListAPIView.as_view(), name='get-colors'),
     path('get-sizes', SizeListAPIView.as_view(), name='get-sizes'),
@@ -27,9 +27,15 @@ urlpatterns = [
     path('get-popular-products', GetPopularProductAPIView.as_view(), name='get-popular-products'),
     path('get-shopping-cart-products', ShoppingCartListUpdateDelete.as_view(), name='get-shopping-cart-products'),
     path('add-shopping_cart', AddToShoppingCartAPIView.as_view(), name='add-shopping_cart'),
+    path('update-count-product-shopping_cart', UpdateShoppingCartAPIView.as_view(), name='update-count-product-shopping_cart'),
     path('delete-shopping_cart/<int:product_id>', DeleteShoppingCartAPIView.as_view(), name='delete-shopping_cart'),
     path('filter', FilterProductsAPIView.as_view(), name='filter'),
     path('promocode', PromoCodeAPIView.as_view(), name='promo_code'),
+    path('order', CreateOrderAPIView.as_view(), name='order'),
+    path('get-order', GetOrderAPIView.as_view(), name='get-order'),
+    path('update-order', UpdateUserOrderAPIView.as_view(), name='update-order'),
+    path('payment', PaymentAPIView.as_view(), name='payment'),
+    path('user-wallet', GetUserWalletAPIView.as_view(), name='user-wallet'),
     path('get-similar-products/', GetSimilarProductsAPIView.as_view(), name='similar-products')
 ]
 

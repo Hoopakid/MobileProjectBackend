@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -22,7 +23,7 @@ class ShippignAddressAPIView(GenericAPIView):
         country_name = request.data.get('country')
 
         if not country_name:
-            return Response("Country name cannot be empty")
+            return Response({'message': "Country name cannot be empty"})
 
         country, created = Country.objects.get_or_create(name=country_name)
         state, created = State.objects.get_or_create(state=state_name, country=country)
