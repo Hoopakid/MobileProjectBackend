@@ -13,11 +13,10 @@ class SizeSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ('file',)
+        fields = ('file', 'product')
 
 
 class AddCategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = ('name', 'img')
@@ -38,7 +37,6 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = ('name', 'description', 'price', 'category', 'quantity')
@@ -61,6 +59,12 @@ class GetProductSizeColorSerializer(serializers.ModelSerializer):
         model = ProductSizeColor
         fields = '__all__'
 
+        model = File
+        fields = ('file', 'product')
+
+    def create(self, validated_data):
+        return File.objects.create(**validated_data)
+
 
 class GetProductSizeSerializer(serializers.ModelSerializer):
     size = SizeSerializer()
@@ -79,7 +83,6 @@ class GetSizeColorSerializer(serializers.ModelSerializer):
 
 
 class ProductAddSizeColorSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ProductSizeColor
         fields = '__all__'
@@ -113,3 +116,7 @@ class PromoCodeSerializer(serializers.ModelSerializer):
 
 class QuerySerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)
+
+
+class TemporarilyPhotosSerializer(serializers.Serializer):
+    file = serializers.FileField()

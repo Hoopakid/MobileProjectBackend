@@ -30,5 +30,6 @@ urlpatterns = [
     path('delete-shopping_cart/<int:product_id>', DeleteShoppingCartAPIView.as_view(), name='delete-shopping_cart'),
     path('filter', FilterProductsAPIView.as_view(), name='filter'),
     path('promocode', PromoCodeAPIView.as_view(), name='promo_code'),
+    path('get-similar-products/', GetSimilarProductsAPIView.as_view(), name='similar-products')
 ]
 

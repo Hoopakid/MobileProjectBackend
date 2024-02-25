@@ -86,6 +86,7 @@ class File(models.Model):
     file = models.FileField(upload_to=slugify_upload, blank=True, null=True)
     hash = models.CharField(max_length=150, blank=True, null=True, unique=True)
     product = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
+    uploaded_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
     def save(self, *args, **kwargs):
         input = self.file.name
@@ -128,9 +129,3 @@ class PromoCode(models.Model):
 
     def __str__(self):
         return self.code
-
-
-
-
-
-
