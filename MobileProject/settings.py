@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'mptt',
     'main',
     'accounts',
-    'chat',
     'customer',
 
     # third-party

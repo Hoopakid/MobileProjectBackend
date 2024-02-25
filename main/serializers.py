@@ -1,7 +1,7 @@
 from django.core.validators import MaxValueValidator
 from rest_framework import serializers
 
-from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode
+from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, Order, UserWallet
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -13,19 +13,22 @@ class SizeSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ('file',)
+        fields = ('file', 'product_id')
+
+
+class ProductFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ('hash',)
 
 
 class AddCategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
-        fields = ('name', 'img')
+        fields = ('name',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    img = FileUploadSerializer()
-
     class Meta:
         model = Category
         fields = '__all__'
@@ -38,7 +41,6 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = ('name', 'description', 'price', 'category', 'quantity')
@@ -67,6 +69,7 @@ class GetProductSizeColorSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return File.objects.create(**validated_data)
 
+
 class GetProductSizeSerializer(serializers.ModelSerializer):
     size = SizeSerializer()
 
@@ -84,22 +87,20 @@ class GetSizeColorSerializer(serializers.ModelSerializer):
 
 
 class ProductAddSizeColorSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ProductSizeColor
         fields = '__all__'
 
 
 class AddToShoppingCartSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Shoping_cart
         fields = ('product_id', 'count_product')
 
 
 sort_by_choices = (
-        ('New_Today', 'New_This_Week', 'Top_sellers')
-    )
+    ('New_Today', 'New_This_Week', 'Top_sellers')
+)
 
 
 class FilterQuerySerializer(serializers.Serializer):
@@ -113,8 +114,42 @@ class FilterQuerySerializer(serializers.Serializer):
 class PromoCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PromoCode
-        fields = ('discount', )
+        fields = ('discount',)
 
 
 class QuerySerializer(serializers.Serializer):
     query = serializers.CharField(max_length=255)
+
+
+class CreateOrderSerializer(serializers.ModelSerializer):
+    product = ProductListSerializer()
+
+    class Meta:
+        model = Order
+        fields = ('product', 'status', 'count_product')
+
+
+class GetOrderSerializer(serializers.ModelSerializer):
+    product = ProductListSerializer()
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class UpdateOrderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Order
+        fields = ('product',)
+
+
+class PaymentSerializer(serializers.Serializer):
+    cash = serializers.FloatField()
+
+
+class UserWalletSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserWallet
+        fields = ('cash', 'created_at')
