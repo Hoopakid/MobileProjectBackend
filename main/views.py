@@ -31,6 +31,27 @@ from .serializers import CreateProductSerializer, ProductListSerializer, Categor
     GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
     AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer, ProductFileSerializer, \
     CreateOrderSerializer, GetOrderSerializer, UpdateOrderSerializer, PaymentSerializer, UserWalletSerializer
+from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode, LikeModel
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer, LikeSerializersRes
+from .models import Product, Color, Category, Size, File, ProductSizeColor, ReviewModel
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    ReviewSerializersRes, ReviewSerializer
+from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer
+from opencv.utils import check_image_similarity
+from .models import Product, Color, Category, Size, File, ProductSizeColor
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    TemporarilyPhotosSerializer
 
 
 class CreateProductAPIView(CreateAPIView):
@@ -277,14 +298,17 @@ class AllProductSizeColorAPIView(GenericAPIView):
         return Response(data_serializer.data)
 
 
-@receiver(post_save, sender=Product)
-def update_category_count(sender, instance, created, **kwargs):
-    if created:
-        category = instance.category
-        if category:
-            category.count_product = Product.objects.filter(category=category).count()
-            category.save()
-
+# @receiver(post_save, sender=Product)
+# def update_category_count(sender, instance, created, **kwargs):
+#     if created:
+#         category = instance.category
+#         if category:
+#             category.count_product = Product.objects.filter(category=category).count()
+#             category.save()
+#
+#         sizes = ProductSizes.objects.filter(product_id=pk)
+#         sizes_serializer = ProductSizesSerializer(sizes, many=True)
+#         return Response(sizes_serializer.data)
 
 class ProductListByOtherCategoryAPIView(APIView):
     permission_classes = ()
@@ -597,5 +621,105 @@ class GetUserWalletAPIView(APIView):
 
 
 
+class Review(GenericAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = ReviewSerializer
 
+    def post(self, request, pk):
+        user = request.user.id
+        comment = request.data.get('comment')
+        star = request.data.get('star')
+
+        rev = ReviewModel.objects.create(
+            user_id=user,
+            product_id=pk,
+            comment=comment,
+            star=star
+        )
+        review_serializers = ReviewSerializersRes(rev)
+        return Response({'success': True, 'data': review_serializers.data})
+
+    def patch(self, request, pk):
+        user_id = request.user.id
+        comment = request.data.get('comment')
+        rev = ReviewModel.objects.update(
+            user_id=user_id,
+            product_id=pk,
+            comment=comment
+        )
+        response = ReviewSerializersRes(rev)
+        return Response({'success': True, 'data': response.data})
+
+
+    def delete(self, request, pk):
+        user_id = request.user.id
+
+        LikeModel.objects.filter(user_id=user_id, product_id=pk).delete()
+        return Response({'success': True})
+
+class Like(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk):
+        user = request.user.id
+        like = LikeModel.objects.create(
+            user_id=user,
+            product_id=pk,
+            like=1
+        )
+        like_serializers = LikeSerializersRes(like)
+        return Response({'success': True, 'data': like_serializers.data})
+
+
+    def delete(self, request, pk):
+        user_id = request.user.id
+
+        LikeModel.objects.filter(user_id=user_id, product_id=pk).delete()
+        return Response({'success': True})
+
+
+class GetSimilarProductsAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = TemporarilyPhotosSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                uploaded_file = serializer.validated_data['file']
+                file_content = uploaded_file.read()
+                with open(f'media/temporarily/{uploaded_file.name}', 'wb') as f:
+                    f.write(file_content)
+                similarity_percentage = check_image_similarity(uploaded_file.name)
+                similar_products = []
+                for products in similarity_percentage:
+                    if float(list(products.values())[0]) > 50.0:
+                        similar_products.append(products)
+
+                similar_product_ids = []
+                for filename in similar_products:
+                    file_name = f'file/{list(filename.keys())[0]}'
+                    try:
+                        file_obj = File.objects.get(file__icontains=file_name)
+                        if file_obj.product_id not in similar_product_ids:
+                            similar_product_ids.append(file_obj.product_id)
+                    except File.DoesNotExist:
+                        pass
+
+                similar_products_data = []
+                for product_id in similar_product_ids:
+                    try:
+                        product = Product.objects.get(pk=product_id)
+                        similar_products_data.append(product)
+                    except Product.DoesNotExist:
+                        pass
+
+                serializer = ProductListSerializer(similar_products_data, many=True)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,7 +1,9 @@
 from django.core.validators import MaxValueValidator
 from rest_framework import serializers
-
 from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, Order, UserWallet
+from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, LikeModel
+from .models import Product, Size, Category, File, Color, ProductSizeColor, ReviewModel
+from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -22,6 +24,9 @@ class ProductFileSerializer(serializers.ModelSerializer):
         fields = ('hash',)
 
 
+        fields = ('file', 'product')
+
+ 
 class AddCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -153,3 +158,54 @@ class UserWalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserWallet
         fields = ('cash', 'created_at')
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model: ReviewModel
+        fields = ('comment', 'star', )
+
+class ReviewSerializersRes(serializers.ModelSerializer):
+
+    class Meta:
+        model: ReviewModel
+        fields = '__all__'
+
+
+
+class LikeSerializersRes(serializers.ModelSerializer):
+
+    class Meta:
+        model: LikeModel
+        fields = '__all__'
+
+    class Meta:
+        model = Shoping_cart
+        fields = ('product_id', 'count_product')
+
+
+sort_by_choices = (
+        ('New_Today', 'New_This_Week', 'Top_sellers')
+    )
+
+
+class FilterQuerySerializer(serializers.Serializer):
+    category_id = serializers.CharField(required=False)
+    start_price = serializers.IntegerField(required=False)
+    end_price = serializers.IntegerField(required=False)
+    sort_by = serializers.ChoiceField(choices=sort_by_choices)
+    rate = serializers.IntegerField(validators=[MaxValueValidator(5)])
+
+
+class PromoCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PromoCode
+        fields = ('discount', )
+
+
+class QuerySerializer(serializers.Serializer):
+    query = serializers.CharField(max_length=255)
+
+
+class TemporarilyPhotosSerializer(serializers.Serializer):
+    file = serializers.FileField()

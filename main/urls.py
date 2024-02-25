@@ -36,5 +36,6 @@ urlpatterns = [
     path('update-order', UpdateUserOrderAPIView.as_view(), name='update-order'),
     path('payment', PaymentAPIView.as_view(), name='payment'),
     path('user-wallet', GetUserWalletAPIView.as_view(), name='user-wallet'),
+    path('get-similar-products/', GetSimilarProductsAPIView.as_view(), name='similar-products')
 ]
 
