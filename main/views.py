@@ -23,6 +23,16 @@ from rest_framework.viewsets import ViewSet
 from rest_framework import viewsets
 
 from accounts.permissions import AdminPermission
+from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode, LikeModel
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer, LikeSerializersRes
+from .models import Product, Color, Category, Size, File, ProductSizeColor, ReviewModel
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    ReviewSerializersRes, ReviewSerializer
 from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode
 from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
     SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
@@ -478,6 +488,62 @@ class PromoCodeAPIView(GenericAPIView):
         promo_code.save()
         data_serializer = self.serializer_class(promo_code)
         return Response(data_serializer.data)
+
+class Review(GenericAPIView):
+    permission_classes = (IsAuthenticated, )
+    serializer_class = ReviewSerializer
+
+    def post(self, request, pk):
+        user = request.user.id
+        comment = request.data.get('comment')
+        star = request.data.get('star')
+
+        rev = ReviewModel.objects.create(
+            user_id=user,
+            product_id=pk,
+            comment=comment,
+            star=star
+        )
+        review_serializers = ReviewSerializersRes(rev)
+        return Response({'success': True, 'data': review_serializers.data})
+
+    def patch(self, request, pk):
+        user_id = request.user.id
+        comment = request.data.get('comment')
+        rev = ReviewModel.objects.update(
+            user_id=user_id,
+            product_id=pk,
+            comment=comment
+        )
+        response = ReviewSerializersRes(rev)
+        return Response({'success': True, 'data': response.data})
+
+
+    def delete(self, request, pk):
+        user_id = request.user.id
+
+        LikeModel.objects.filter(user_id=user_id, product_id=pk).delete()
+        return Response({'success': True})
+
+class Like(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, pk):
+        user = request.user.id
+        like = LikeModel.objects.create(
+            user_id=user,
+            product_id=pk,
+            like=1
+        )
+        like_serializers = LikeSerializersRes(like)
+        return Response({'success': True, 'data': like_serializers.data})
+
+
+    def delete(self, request, pk):
+        user_id = request.user.id
+
+        LikeModel.objects.filter(user_id=user_id, product_id=pk).delete()
+        return Response({'success': True})
 
 
 class GetSimilarProductsAPIView(GenericAPIView):
