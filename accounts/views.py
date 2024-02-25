@@ -92,7 +92,6 @@ class UserInfoAPIView(GenericAPIView):
         return Response({'success': True, 'data': user_serializer.data})
 
 
-
 # PasswordResetRequest
 class PasswordResetRequestView(GenericAPIView):
     serializer_class = UserRegisterSerializer
@@ -210,3 +209,8 @@ def callback_facebook(request):
 # ngrok http http://localhost:8000
 # https://www.facebook.com/v9.0/dialog/oauth?client_id=710566401221328&redirect_uri=https://45a7-178-218-201-17.ngrok-free.app/accounts/facebook/callback&scope=email,public_profile
 
+class UserListAPiView(GenericAPIView):
+    permission_classes = ()
+
+    def get(self):
+        pass

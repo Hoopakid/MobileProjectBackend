@@ -86,6 +86,8 @@ class ShippignAddressAPIView(GenericAPIView):
 
         if not user:
             return Response({'success': False, "error": "user_id is required"})
+        if not country_name:
+            return Response({'message': "Country name cannot be empty"})
 
         if phone_number is None or postal_code is None or street_address is None or house_number is None or state_name is None or city_name is None or country_name is None:
             return Response({'success': False, 'error': 'there is empty data.'})
