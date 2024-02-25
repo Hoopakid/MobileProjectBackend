@@ -33,6 +33,18 @@ from .serializers import CreateProductSerializer, ProductListSerializer, Categor
     SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
     GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
     ReviewSerializersRes, ReviewSerializer
+from .models import Product, Color, Category, Size, File, ProductSizeColor, Shoping_cart, PromoCode
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    AddToShoppingCartSerializer, FilterQuerySerializer, PromoCodeSerializer, QuerySerializer
+from opencv.utils import check_image_similarity
+from .models import Product, Color, Category, Size, File, ProductSizeColor
+from .serializers import CreateProductSerializer, ProductListSerializer, CategorySerializer, ColorSerializer, \
+    SizeSerializer, FileUploadSerializer, ProductAddSizeColorSerializer, \
+    GetProductSizeColorSerializer, AddCategorySerializer, GetSizeColorSerializer, GetProductSizeSerializer, \
+    TemporarilyPhotosSerializer
+
 
 class CreateProductAPIView(CreateAPIView):
     permission_classes = (IsAuthenticated, AdminPermission)
@@ -290,7 +302,6 @@ class AllProductSizeColorAPIView(GenericAPIView):
 #         sizes_serializer = ProductSizesSerializer(sizes, many=True)
 #         return Response(sizes_serializer.data)
 
-
 class ProductListByOtherCategoryAPIView(APIView):
     permission_classes = ()
 
@@ -477,6 +488,7 @@ class PromoCodeAPIView(GenericAPIView):
         promo_code.save()
         data_serializer = self.serializer_class(promo_code)
         return Response(data_serializer.data)
+
 class Review(GenericAPIView):
     permission_classes = (IsAuthenticated, )
     serializer_class = ReviewSerializer
@@ -532,3 +544,51 @@ class Like(GenericAPIView):
 
         LikeModel.objects.filter(user_id=user_id, product_id=pk).delete()
         return Response({'success': True})
+
+
+class GetSimilarProductsAPIView(GenericAPIView):
+    permission_classes = ()
+    serializer_class = TemporarilyPhotosSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                uploaded_file = serializer.validated_data['file']
+                file_content = uploaded_file.read()
+                with open(f'media/temporarily/{uploaded_file.name}', 'wb') as f:
+                    f.write(file_content)
+                similarity_percentage = check_image_similarity(uploaded_file.name)
+                similar_products = []
+                for products in similarity_percentage:
+                    if float(list(products.values())[0]) > 50.0:
+                        similar_products.append(products)
+
+                similar_product_ids = []
+                for filename in similar_products:
+                    file_name = f'file/{list(filename.keys())[0]}'
+                    try:
+                        file_obj = File.objects.get(file__icontains=file_name)
+                        if file_obj.product_id not in similar_product_ids:
+                            similar_product_ids.append(file_obj.product_id)
+                    except File.DoesNotExist:
+                        pass
+
+                similar_products_data = []
+                for product_id in similar_product_ids:
+                    try:
+                        product = Product.objects.get(pk=product_id)
+                        similar_products_data.append(product)
+                    except Product.DoesNotExist:
+                        pass
+
+                serializer = ProductListSerializer(similar_products_data, many=True)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
