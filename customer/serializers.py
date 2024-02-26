@@ -1,13 +1,9 @@
 from rest_framework import serializers
-from customer.models import Favorite, DiscountProduct
+from customer.models import DiscountProduct, DiscountCategory
 
 
-class FavouriteSerializer(serializers.ModelSerializer):
-    product_ids = serializers.ListField()
-
-    class Meta:
-        model = Favorite
-        fields = ['product_ids']
+class FavouriteSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
 
 
 class ShippingAddressSerializer(serializers.Serializer):
@@ -17,10 +13,23 @@ class ShippingAddressSerializer(serializers.Serializer):
     house_number = serializers.CharField()
     city = serializers.CharField()
     state = serializers.CharField()
-    county = serializers.CharField()
+    country = serializers.CharField()
 
 
-class DiscountProductSerializer(serializers.ModelSerializer):
+class DiscountCategorySerializer(serializers.Serializer):
+    discount_percentage = serializers.FloatField()
+    start_time = serializers.DateTimeField()
+    end_time = serializers.DateTimeField()
+
+
+class DiscountCategoryListserializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiscountCategory
+        fields = '__all__'
+
+
+class DiscountProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountProduct
-        fields = ['product', 'discount_percentage', 'start_time', 'end_time']
+        fields = '__all__'
+
