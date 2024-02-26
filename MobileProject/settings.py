@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'channels'
 ]
+
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'jwt-auth',
