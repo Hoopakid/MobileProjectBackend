@@ -1,14 +1,31 @@
 from django.urls import path
 
-from accounts.views import RegisterAPIView, UserInfoAPIView, LogoutAPIView
+from accounts.views import RegisterAPIView, UserInfoAPIView, LogoutAPIView, GoogleLogin, RedirectToGoogleAPIView, \
+    callback_google, FacebookLogin, RedirectToFacebookApiView, callback_facebook, PasswordResetRequestView, \
+    PasswordResetConfirmView
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
-    TokenRefreshView, TokenBlacklistView,
+    TokenRefreshView
 )
 
 urlpatterns = [
     path('register', RegisterAPIView.as_view(), name='register'),
     path('logout', LogoutAPIView.as_view(), name='logout'),
-    path('user-info/<int:pk>', UserInfoAPIView.as_view(), name='user_info'),
+    path('user-info', UserInfoAPIView.as_view(), name='user_info'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Google
+    path('google', GoogleLogin.as_view(), name='google_login'),
+    path('google-login', RedirectToGoogleAPIView.as_view(), name='google_login2'),
+    path('google/callback', callback_google, name='google_callback'),
+    # Facebook
+    path('facebook', FacebookLogin.as_view(), name='facebook'),
+    path('facebook-login', RedirectToFacebookApiView.as_view(), name='facebook-login'),
+    path('facebook/callback', callback_facebook, name='facebook_callback'),
+
+    path('reset-password', PasswordResetRequestView.as_view(), name='password_reset_request')
+    # path('reset-password-confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(),
+    #      name='reset_password_confirm')
 ]
