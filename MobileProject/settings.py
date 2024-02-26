@@ -219,8 +219,10 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+celery_host = os.environ.get('CELERY_HOST')
+
+CELERY_RESULT_BACKEND = f'redis://{celery_host}/0'
+CELERY_BROKER_URL = f'redis://{celery_host}/0'
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERY_BEAT_SCHEDULE = {
