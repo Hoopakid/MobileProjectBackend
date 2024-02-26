@@ -693,3 +693,21 @@ class GetSimilarProductsAPIView(GenericAPIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ColorGetAPIView(RetrieveAPIView):
+    queryset = Color.objects.all()
+    permission_classes = ()
+    serializer_class = ColorSerializer
+
+
+class CreateColorAPIView(CreateAPIView):
+    queryset = Color.objects.all()
+    permission_classes = (IsAuthenticated, AdminPermission)
+    serializer_class = ColorSerializer
+
+
+class CreateSizeAPIView(CreateAPIView):
+    queryset = Size.objects.all()
+    permission_classes = (IsAuthenticated, AdminPermission)
+    serializer_class = SizeSerializer
