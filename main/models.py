@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from os.path import splitext
 
-from mptt.models import MPTTModel, TreeForeignKey
+from mptt.models import MPTTModel
 
 from accounts.views import User
 
@@ -98,7 +98,7 @@ class File(models.Model):
         return self.file.name
 
 
-class Shoping_cart(models.Model):
+class ShoppingCart(models.Model):
     product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE)
     count_product = models.IntegerField(default=1)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -114,15 +114,9 @@ class PromoCode(models.Model):
     current_usage = models.PositiveIntegerField(default=0)
 
     def is_valid(self):
-        """
-        Проверяет, действителен ли промокод на текущую дату и количество его использований.
-        """
         return self.start_date <= timezone.now() <= self.end_date and self.current_usage < self.max_usage
 
     def use(self):
-        """
-        Использует промокод, увеличивая количество его использований на 1.
-        """
         if self.is_valid():
             self.current_usage += 1
             self.save()
@@ -151,16 +145,16 @@ class UserWallet(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now)
 
 
-
 class ReviewModel(models.Model):
-    user_id = models.ForeignKey('auth.User',on_delete=models.CASCADE, blank=True, null=True)
+    user_id = models.ForeignKey('auth.User', on_delete=models.CASCADE, blank=True, null=True)
     product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
     comment = models.TextField()
     star = models.FloatField()
     reviewed_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
+
 class LikeModel(models.Model):
-    user_id = models.ForeignKey('auth.User',on_delete=models.CASCADE, blank=True, null=True)
+    user_id = models.ForeignKey('auth.User', on_delete=models.CASCADE, blank=True, null=True)
     product_id = models.ForeignKey('main.Product', on_delete=models.CASCADE, blank=True, null=True)
     like = models.IntegerField()
     reviewed_at = models.DateTimeField(default=datetime.datetime.utcnow)

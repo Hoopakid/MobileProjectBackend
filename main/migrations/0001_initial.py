@@ -128,7 +128,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='main.product'),
         ),
         migrations.CreateModel(
-            name='Shoping_cart',
+            name='ShoppingCart',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             name='Order',
@@ -152,7 +152,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Shoping_cart',
+            name='ShoppingCart',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('count_product', models.IntegerField(default=1)),

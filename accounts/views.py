@@ -1,32 +1,26 @@
 import os
-import requests # noqa
+import requests
 from dotenv import load_dotenv
 from django.shortcuts import redirect
-from django.shortcuts import render
-from django.contrib.auth.views import get_user_model
-from rest_framework import status
-from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics, status # noqa
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
-from allauth.socialaccount.models import SocialApp # noqa
+from allauth.socialaccount.models import SocialApp
 from django.contrib.auth.views import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client # noqa
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from accounts.serializers import UserSerializer, UserRegisterSerializer, PasswordResetSerializer
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter # noqa
-from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter # noqa
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from main.tasks import send_email_reset
-
 
 User = get_user_model()
 load_dotenv()
@@ -67,6 +61,7 @@ class RegisterAPIView(GenericAPIView):
         user_serializer = UserSerializer(user)
         return Response({'success': True, 'data': user_serializer.data})
 
+
 # Log out
 class LogoutAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -76,9 +71,7 @@ class LogoutAPIView(APIView):
         token = RefreshToken(refresh_token)
         token.blacklist()
 
-        return Response({"succes": "Loged out"}, status=status.HTTP_204_NO_CONTENT)
-
-
+        return Response({"success": True}, status=status.HTTP_204_NO_CONTENT)
 
 
 # User Info
@@ -118,8 +111,8 @@ class PasswordResetConfirmView(GenericAPIView):
 
     def post(self, request, uidb64, token, *args, **kwargs):
         try:
-            uidb64= urlsafe_base64_decode(uidb64).decode()
-            user= User.objects.get(pk=uidb64)
+            uidb64 = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uidb64)
 
             if default_token_generator.check_token(user, token):
                 new_password = request.data.get('new_password', '')
@@ -143,10 +136,12 @@ class RedirectToGoogleAPIView(APIView):
         url = f'https://accounts.google.com/o/oauth2/v2/auth?redirect_uri={google_redirect_uri}&prompt=consent&response_type=code&client_id={google_client_id}&scope=openid email profile&access_type=offline'
         return redirect(url)
 
+
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = 'https://c866-178-218-201-17.ngrok-free.app/accounts/google/callback'
     client_class = OAuth2Client
+
 
 @api_view(["GET"])
 def callback_google(request):
@@ -155,23 +150,23 @@ def callback_google(request):
     return Response(res.json())
 
 
-
-
 # facebook
 class RedirectToFacebookApiView(APIView):
     def get(self, request):
         facebook_redirect_uri = os.getenv('FACEBOOK_REDIRECT_URI')
         facebook_app_id = os.getenv('FACEBOOK_APP_ID')
         try:
-            url = f'https://www.facebook.com/v9.0/dialog/oauth?client_id={facebook_app_id}&redirect_uri={facebook_redirect_uri}&scope=email,public_profile' # noqa
+            url = f'https://www.facebook.com/v9.0/dialog/oauth?client_id={facebook_app_id}&redirect_uri={facebook_redirect_uri}&scope=email,public_profile'  # noqa
         except SocialApp.DoesNotExist:
             return Response({'success': False, 'message': 'Social does not exist'}, status=404)
         return redirect(url)
+
 
 class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
     callback_url = "https://c866-178-218-201-17.ngrok-free.app/accounts/facebook/callback_facebook"
     client_class = OAuth2Client
+
 
 @api_view(['GET'])
 def callback_facebook(request):
@@ -204,6 +199,7 @@ def callback_facebook(request):
             return Response({'error': 'Access token not found.'}, status=status.HTTP_400_BAD_REQUEST)
     except requests.exceptions.RequestException as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://63b4-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=796972424476-4pakur4pb1c0d578vgso2u72j3burqbh.apps.googleusercontent.com&scope=openid email profile&access_type=offline # noqa
 # ngrok http http://localhost:8000

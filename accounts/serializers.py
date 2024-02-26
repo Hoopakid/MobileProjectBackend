@@ -10,7 +10,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'email', 'username', 'date_joined')
 
 
-
 class UserRegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(max_length=255, write_only=True)
     password2 = serializers.CharField(max_length=255, write_only=True)
@@ -19,8 +18,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'email', 'username', 'password1', 'password2')
 
+
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(max_length=20)
-
-    

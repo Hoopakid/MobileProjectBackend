@@ -1,8 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now
-from django.db.models import Count
-from rest_framework.generics import GenericAPIView, ListAPIView
-from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -70,7 +67,7 @@ class MyFavouriteAPIView(GenericAPIView):
         return Response(serializer.data)
 
 
-class ShippignAddressAPIView(GenericAPIView):
+class ShippingAddressAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ShippingAddressSerializer
 

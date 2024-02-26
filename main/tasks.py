@@ -1,6 +1,6 @@
+import os
 from celery import shared_task
 from django.core.mail import send_mail
-from django.urls import reverse, reverse_lazy
 
 
 @shared_task
@@ -20,7 +20,6 @@ def send_email(emails: list, product):
     return 'Done'
 
 
-
 @shared_task
 def send_email_reset(email, uidb64, token):
     send_mail(
@@ -34,13 +33,11 @@ def send_email_reset(email, uidb64, token):
         fail_silently=True
     )
     return 'Done'
-import os
 
 
 @shared_task
 def clear_temporary_files():
-    temporary_directory = '/home/hoopakid/PythonMain/DRF_JWT/MobileProjectBackend/MobileProject/media/temporarily'
+    temporary_directory = '/media/temporarily'
     for filename in os.listdir(temporary_directory):
         file_path = os.path.join(temporary_directory, filename)
-        os.remove(file_path)
         os.remove(file_path)

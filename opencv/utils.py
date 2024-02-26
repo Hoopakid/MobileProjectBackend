@@ -1,12 +1,10 @@
 import os
 
-from PIL import Image
-import glob
 from skimage.metrics import structural_similarity
 import cv2
 
-absolute_path = '/home/hoopakid/PythonMain/DRF_JWT/MobileProjectBackend/MobileProject/media/file'
-temporarily_path = '/home/hoopakid/PythonMain/DRF_JWT/MobileProjectBackend/MobileProject/media/temporarily/'
+absolute_path = '/media/file'
+temporarily_path = '/media/temporarily/'
 
 
 def get_all_image_paths():
@@ -39,5 +37,3 @@ def check_image_similarity(photo_path: str):
         photo_data.append({image: result_percentage})
 
     return photo_data
-
-

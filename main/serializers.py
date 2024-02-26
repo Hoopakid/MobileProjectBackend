@@ -1,9 +1,9 @@
 from django.core.validators import MaxValueValidator
 from rest_framework import serializers
-from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, Order, UserWallet
-from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode, LikeModel
-from .models import Product, Size, Category, File, Color, ProductSizeColor, ReviewModel
-from .models import Product, Size, Category, File, Color, ProductSizeColor, Shoping_cart, PromoCode
+from .models import Order, UserWallet
+from .models import LikeModel
+from .models import ReviewModel
+from .models import Product, Size, Category, File, Color, ProductSizeColor, ShoppingCart, PromoCode
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -15,19 +15,13 @@ class SizeSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ('file', 'product_id')
+        fields = ('file', 'product')
 
 
 class ProductFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
         fields = ('hash',)
-
-
-        fields = ('file', 'product')
-
- 
-        fields = ('file', 'product')
 
 
 class AddCategorySerializer(serializers.ModelSerializer):
@@ -71,9 +65,6 @@ class GetProductSizeColorSerializer(serializers.ModelSerializer):
         model = ProductSizeColor
         fields = '__all__'
 
-        model = File
-        fields = ('file', 'product')
-
     def create(self, validated_data):
         return File.objects.create(**validated_data)
 
@@ -102,7 +93,7 @@ class ProductAddSizeColorSerializer(serializers.ModelSerializer):
 
 class AddToShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Shoping_cart
+        model = ShoppingCart
         fields = ('product_id', 'count_product')
 
 
@@ -146,7 +137,6 @@ class GetOrderSerializer(serializers.ModelSerializer):
 
 
 class UpdateOrderSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Order
         fields = ('product',)
@@ -157,57 +147,27 @@ class PaymentSerializer(serializers.Serializer):
 
 
 class UserWalletSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserWallet
         fields = ('cash', 'created_at')
 
-class ReviewSerializer(serializers.ModelSerializer):
 
+class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model: ReviewModel
-        fields = ('comment', 'star', )
+        fields = ('comment', 'star',)
+
 
 class ReviewSerializersRes(serializers.ModelSerializer):
-
     class Meta:
         model: ReviewModel
         fields = '__all__'
-
 
 
 class LikeSerializersRes(serializers.ModelSerializer):
-
     class Meta:
         model: LikeModel
         fields = '__all__'
-
-    class Meta:
-        model = Shoping_cart
-        fields = ('product_id', 'count_product')
-
-
-sort_by_choices = (
-        ('New_Today', 'New_This_Week', 'Top_sellers')
-    )
-
-
-class FilterQuerySerializer(serializers.Serializer):
-    category_id = serializers.CharField(required=False)
-    start_price = serializers.IntegerField(required=False)
-    end_price = serializers.IntegerField(required=False)
-    sort_by = serializers.ChoiceField(choices=sort_by_choices)
-    rate = serializers.IntegerField(validators=[MaxValueValidator(5)])
-
-
-class PromoCodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PromoCode
-        fields = ('discount', )
-
-
-class QuerySerializer(serializers.Serializer):
-    query = serializers.CharField(max_length=255)
 
 
 class TemporarilyPhotosSerializer(serializers.Serializer):

@@ -32,4 +32,3 @@ class DiscountProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountProduct
         fields = '__all__'
-
