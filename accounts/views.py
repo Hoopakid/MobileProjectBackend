@@ -60,4 +60,8 @@ class UserInfoAPIView(GenericAPIView):
         return Response({'success': True, 'data': user_serializer.data})
 
 
-from django.shortcuts import render
+class UserListAPiView(GenericAPIView):
+    permission_classes = ()
+
+    def get(self):
+        pass

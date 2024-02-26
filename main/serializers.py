@@ -12,11 +12,10 @@ class SizeSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ('file',)
+        fields = ('file', 'product')
 
 
 class AddCategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = ('name', 'img')
@@ -37,7 +36,6 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = ('name', 'description', 'price', 'category')
@@ -66,6 +64,7 @@ class GetProductSizeColorSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return File.objects.create(**validated_data)
 
+
 class GetProductSizeSerializer(serializers.ModelSerializer):
     size = SizeSerializer()
 
@@ -83,10 +82,10 @@ class GetSizeColorSerializer(serializers.ModelSerializer):
 
 
 class ProductAddSizeColorSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ProductSizeColor
         fields = '__all__'
 
 
-
+class TemporarilyPhotosSerializer(serializers.Serializer):
+    file = serializers.FileField()
