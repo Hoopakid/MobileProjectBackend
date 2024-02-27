@@ -1,0 +1,83 @@
+version: "3.11"
+
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: "docker.elastic.co/elasticsearch/elasticsearch:8.10.4"
+    volumes:
+      - ./data/elastic:/var/lib/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+    mem_limit: 2g
+
+  django:
+    build: .
+    container_name: django
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_DB_USER=$DB_USER
+      - DJANGO_DB_PASSWORD=$DB_PASSWORD
+      - DJANGO_DB_HOST=$DB_HOST
+      - DJANGO_DB_PORT=$DB_PORT
+      - DJANGO_DB_NAME=$DB_NAME
+    volumes:
+      - .:/app
+      - media_volume:/home/user/PythonMain/DRF_JWT/MobileProjectBackend/MobileProject/media
+    depends_on:
+      - dtbs
+      - elasticsearch
+      - celery
+      - redis-server
+
+  dtbs:
+    image: postgres:15.3-alpine
+    container_name: dtbs
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB=$DB_NAME
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_HOST=$DB_HOST
+      - POSTGRES_PORT=$DB_PORT
+
+  redis-server:
+    image: redis:6-alpine
+    container_name: redis-server
+    volumes:
+      - redis_data:/data/
+    expose:
+      - 6379
+
+  celery:
+    build: .
+    container_name: celery_beat
+    command: celery -A MobileProject beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis-server
+    mem_limit: 2g
+
+
+volumes:
+  media_volume:
+  redis_data:
+  postgres_data:
