@@ -22,7 +22,6 @@ from rest_framework.views import APIView
 from accounts.permissions import AdminPermission
 from accounts.serializers import User
 from customer.models import ShippingAddress
-from opencv.utils import check_image_similarity
 from .models import (
     Product, Color,
     Category, Size,
