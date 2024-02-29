@@ -27,37 +27,52 @@ User = get_user_model()
 load_dotenv()
 
 
+# class RegisterAPIView(GenericAPIView):
+#     serializer_class = UserRegisterSerializer
+#
+#     def post(self, request):
+#         first_name = request.data.get('first_name')
+#         last_name = request.data.get('last_name')
+#         email = request.data.get('email')
+#         username = request.data.get('username')
+#         password1 = request.data.get('password1')
+#         password2 = request.data.get('password2')
+#         last_login = request.data.get('last_login')
+#
+#         if password1 != password2:
+#             return Response({'success': False, 'error': 'Passwords do not match!'}, status=400)
+#
+#         if User.objects.filter(username=username).exists():
+#             return Response({'success': False, 'error': 'Username already exists!'}, status=400)
+#
+#         if User.objects.filter(email=email).exists():
+#             return Response({'success': False, 'error': 'Email already used!'}, status=400)
+#
+#         hashed_password = make_password(password1)
+#
+#         user = User.objects.create_user(
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email,
+#             username=username,
+#             password=hashed_password,
+#             last_login =last_login
+#         )
+#         user_serializer = UserSerializer(user)
+#         return Response({'success': True, 'data': user_serializer.data})
+
+
 class RegisterAPIView(GenericAPIView):
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        email = request.data.get('email')
-        username = request.data.get('username')
-        password1 = request.data.get('password1')
-        password2 = request.data.get('password2')
+        serializer = self.get_serializer(data=request.data)
 
-        if password1 != password2:
-            return Response({'success': False, 'error': 'Passwords do not match!'}, status=400)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
 
-        if User.objects.filter(username=username).exists():
-            return Response({'success': False, 'error': 'Username already exists!'}, status=400)
-
-        if User.objects.filter(email=email).exists():
-            return Response({'success': False, 'error': 'Email already used!'}, status=400)
-
-        hashed_password = make_password(password1)
-
-        user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            username=username,
-            password=hashed_password
-        )
-        user_serializer = UserSerializer(user)
-        return Response({'success': True, 'data': user_serializer.data})
+        return Response(serializer.errors)
 
 # Log out
 class LogoutAPIView(APIView):
