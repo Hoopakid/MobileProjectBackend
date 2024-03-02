@@ -648,50 +648,50 @@ class Like(GenericAPIView):
         return Response({'success': True})
 
 
-class GetSimilarProductsAPIView(GenericAPIView):
-    permission_classes = ()
-    serializer_class = TemporarilyPhotosSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            if serializer.is_valid():
-                uploaded_file = serializer.validated_data['file']
-                file_content = uploaded_file.read()
-                with open(f'media/temporarily/{uploaded_file.name}', 'wb') as f:
-                    f.write(file_content)
-                similarity_percentage = check_image_similarity(uploaded_file.name)
-                similar_products = []
-                for products in similarity_percentage:
-                    if float(list(products.values())[0]) > 50.0:
-                        similar_products.append(products)
-
-                similar_product_ids = []
-                for filename in similar_products:
-                    file_name = f'file/{list(filename.keys())[0]}'
-                    try:
-                        file_obj = File.objects.get(file__icontains=file_name)
-                        if file_obj.product_id not in similar_product_ids:
-                            similar_product_ids.append(file_obj.product_id)
-                    except File.DoesNotExist:
-                        pass
-
-                similar_products_data = []
-                for product_id in similar_product_ids:
-                    try:
-                        product = Product.objects.get(pk=product_id)
-                        similar_products_data.append(product)
-                    except Product.DoesNotExist:
-                        pass
-
-                serializer = ProductListSerializer(similar_products_data, many=True)
-
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+# class GetSimilarProductsAPIView(GenericAPIView):
+#     permission_classes = ()
+#     serializer_class = TemporarilyPhotosSerializer
+#
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         try:
+#             if serializer.is_valid():
+#                 uploaded_file = serializer.validated_data['file']
+#                 file_content = uploaded_file.read()
+#                 with open(f'media/temporarily/{uploaded_file.name}', 'wb') as f:
+#                     f.write(file_content)
+#                 similarity_percentage = check_image_similarity(uploaded_file.name)
+#                 similar_products = []
+#                 for products in similarity_percentage:
+#                     if float(list(products.values())[0]) > 50.0:
+#                         similar_products.append(products)
+#
+#                 similar_product_ids = []
+#                 for filename in similar_products:
+#                     file_name = f'file/{list(filename.keys())[0]}'
+#                     try:
+#                         file_obj = File.objects.get(file__icontains=file_name)
+#                         if file_obj.product_id not in similar_product_ids:
+#                             similar_product_ids.append(file_obj.product_id)
+#                     except File.DoesNotExist:
+#                         pass
+#
+#                 similar_products_data = []
+#                 for product_id in similar_product_ids:
+#                     try:
+#                         product = Product.objects.get(pk=product_id)
+#                         similar_products_data.append(product)
+#                     except Product.DoesNotExist:
+#                         pass
+#
+#                 serializer = ProductListSerializer(similar_products_data, many=True)
+#
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ColorGetAPIView(RetrieveAPIView):

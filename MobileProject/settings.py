@@ -102,8 +102,8 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'MobileProject.wsgi.application'
-ASGI_APPLICATION = 'MobileProject.asgi.application'
+WSGI_APPLICATION = 'MobileProject.wsgi.application'
+# ASGI_APPLICATION = 'MobileProject.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -184,6 +184,7 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
     )
 }
 
@@ -200,8 +201,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'chat/static/'
+STATIC_URL = 'static/'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

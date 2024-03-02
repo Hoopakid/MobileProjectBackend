@@ -1,22 +1,22 @@
 import os
-import requests
+import requests  # noqa
 from dotenv import load_dotenv
 from django.shortcuts import redirect
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import generics, status  # noqa
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialApp  # noqa
 from django.contrib.auth.views import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client  # noqa
 from accounts.serializers import UserSerializer, UserRegisterSerializer, PasswordResetSerializer
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter  # noqa
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter  # noqa
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
@@ -26,40 +26,52 @@ User = get_user_model()
 load_dotenv()
 
 
+# class RegisterAPIView(GenericAPIView):
+#     serializer_class = UserRegisterSerializer
+#
+#     def post(self, request):
+#         first_name = request.data.get('first_name')
+#         last_name = request.data.get('last_name')
+#         email = request.data.get('email')
+#         username = request.data.get('username')
+#         password1 = request.data.get('password1')
+#         password2 = request.data.get('password2')
+#         last_login = request.data.get('last_login')
+#
+#         if password1 != password2:
+#             return Response({'success': False, 'error': 'Passwords do not match!'}, status=400)
+#
+#         if User.objects.filter(username=username).exists():
+#             return Response({'success': False, 'error': 'Username already exists!'}, status=400)
+#
+#         if User.objects.filter(email=email).exists():
+#             return Response({'success': False, 'error': 'Email already used!'}, status=400)
+#
+#         hashed_password = make_password(password1)
+#
+#         user = User.objects.create_user(
+#             first_name=first_name,
+#             last_name=last_name,
+#             email=email,
+#             username=username,
+#             password=hashed_password,
+#             last_login =last_login
+#         )
+#         user_serializer = UserSerializer(user)
+#         return Response({'success': True, 'data': user_serializer.data})
+
+
 class RegisterAPIView(GenericAPIView):
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        email = request.data.get('email')
-        username = request.data.get('username')
-        password1 = request.data.get('password1')
-        password2 = request.data.get('password2')
+        serializer = self.get_serializer(data=request.data)
 
-        if User.objects.filter(email=email).exists():
-            return Response({'success': False, 'error': 'Email already used!'}, status=400)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
 
-        if password1 != password2:
-            return Response({'success': False, 'error': 'Passwords do not match!'}, status=400)
-
-        if User.objects.filter(username=username).exists():
-            return Response({'success': False, 'error': 'Username already exists!'}, status=400)
-
-        if User.objects.filter(email=email).exists():
-            return Response({'success': False, 'error': 'Email already used!'}, status=400)
-
-        hashed_password = make_password(password1)
-
-        user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            username=username,
-            password=hashed_password
-        )
-        user_serializer = UserSerializer(user)
-        return Response({'success': True, 'data': user_serializer.data})
+        return Response(serializer.errors)
 
 
 # Log out
@@ -70,14 +82,12 @@ class LogoutAPIView(APIView):
         refresh_token = request.data.get('refresh')
         token = RefreshToken(refresh_token)
         token.blacklist()
-
-        return Response({"success": True}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=204)
 
 
 # User Info
-class UserInfoAPIView(GenericAPIView):
+class UserInfoAPIView(APIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = UserSerializer
 
     def get(self, request):
         user = request.user
@@ -200,13 +210,6 @@ def callback_facebook(request):
     except requests.exceptions.RequestException as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 # https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=https://63b4-178-218-201-17.ngrok-free.app/accounts/google/callback&prompt=consent&response_type=code&client_id=796972424476-4pakur4pb1c0d578vgso2u72j3burqbh.apps.googleusercontent.com&scope=openid email profile&access_type=offline # noqa
 # ngrok http http://localhost:8000
 # https://www.facebook.com/v9.0/dialog/oauth?client_id=710566401221328&redirect_uri=https://45a7-178-218-201-17.ngrok-free.app/accounts/facebook/callback&scope=email,public_profile
-
-class UserListAPiView(GenericAPIView):
-    permission_classes = ()
-
-    def get(self):
-        pass
